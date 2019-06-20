@@ -38,6 +38,10 @@ module.exports = {
     this.setIdAndSecret = function(id, secret) {
       this.clientID = String(id).trim();
       this.clientSecret = String(secret).trim();
+
+
+      console.log('clientID: ', this.clientID);
+      console.log('clientSecret: ', this.clientSecret);
     };
 
     this.getLocalSavedClientList = function() {
