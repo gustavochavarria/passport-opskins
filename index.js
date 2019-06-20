@@ -5,7 +5,8 @@ const request = require('request'),
       fs = require('fs'),
       path = require('path');
 
-function isValidJson(json) {
+
+const isValidJson = (json) => {
   try {
     JSON.parse(json);
   } catch(err) {
@@ -35,25 +36,27 @@ module.exports = {
     this.passReqToCallback = obj.passReqToCallback || false;
     this.canKeepSecret = obj.canKeepSecret || 1;
 
-    this.setIdAndSecret = function(id, secret) {
+    this.setIdAndSecret = (id, secret) => {
       this.clientID = String(id).trim();
       this.clientSecret = String(secret).trim();
-
 
       console.log('clientID: ', this.clientID);
       console.log('clientSecret: ', this.clientSecret);
     };
 
-    this.getLocalSavedClientList = function() {
+    this.getLocalSavedClientList = () => {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         return [];
+
       let data = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
+
       if (!isValidJson(data))
         return [];
+
       return JSON.parse(data).clients;
     };
 
-    this.pushToLocalSavedClientList = function(client) {
+    this.pushToLocalSavedClientList = (client) => {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
           clients: []
@@ -71,7 +74,7 @@ module.exports = {
       fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify(jsonObj));
     };
 
-    this.deleteClient = function(clientid) {
+    this.deleteClient = (clientid) => {
       let options = {
         url: 'https://api.opskins.com/IOAuth/DeleteClient/v1/',
         headers: {
@@ -81,21 +84,19 @@ module.exports = {
         body: `client_id=${clientid}`
       };
       request.post(options, (err, response, body) => {
-        if (err)
-          console.error(err);
+        if (err) console.error(err);
       });
     };
 
-    this.getApiKey = function() {
+    this.getApiKey = () => {
       return this.apiKey;
     };
 
-    let _self = this;
-    this.getClientList = function(cb) {
+    this.getClientList = (cb) => {
       let options = {
         url: 'https://api.opskins.com/IOAuth/GetOwnedClientList/v1/',
         headers: {
-          'authorization': `Basic ${_self.getApiKey()}`,
+          'authorization': `Basic ${this.getApiKey()}`,
           'Content-Type': 'application/json; charset=utf-8'
         }
       };
@@ -112,22 +113,22 @@ module.exports = {
       });
     };
 
-    this.getOrMakeClient = function() {
+    this.getOrMakeClient = () => {
       let localSavedClients = this.getLocalSavedClientList();
       let datApiKey = this.apiKey;
 
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
-        let _dat = this;
 
         let existingClient = null;
 
-        clients.forEach(function (client) {
-          localSavedClients.forEach(function(localClient) {
-            if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri && _dat.returnURL == client.redirect_uri)
+        clients.forEach((client) => {
+          localSavedClients.forEach((localClient) => {
+            if (localClient.client_id == client.client_id && localClient.name == client.name && localClient.redirect_uri == client.redirect_uri && this.returnURL == client.redirect_uri)
               existingClient = localClient;
           });
         });
+
         if (existingClient) {
           return this.setIdAndSecret(existingClient.client_id, existingClient.secret);
         }
@@ -156,34 +157,34 @@ module.exports = {
         });
       });
     };
+
     this.getOrMakeClient();
 
-    this.updateStates = function(states) {
+    this.updateStates = (states) => {
       this.states = states;
     };
-    this.getStates = function() {
+    this.getStates = () => {
       return this.states;
     };
-    this.getReturnUrl = function() {
+    this.getReturnUrl = () => {
       return this.returnURL;
     };
-    this.getAuth = function() {
-      return 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
+    this.getAuth = () => {
+      return 'Basic ' + Buffer.from(`${this.clientID}:${this.clientSecret}`).toString('base64');
     }
 
-    this.goLogin = function() {
+    this.goLogin = () =>  {
       const rand = crypto.randomBytes(4).toString('hex');
       this.states.push(rand);
 
       console.log('go login....');
 
-      let _dat = this;
-      setTimeout(function () {
+      setTimeout(() => {
         console.log('relogin...');
-        for (let i = 0; i < _dat.states.length; i++) {
-          if (_dat.states[i] == rand) {
-            _dat.states.splice(i, 1);
-            _dat.updateStates(_dat.states);
+        for (let i = 0; i < this.states.length; i++) {
+          if (this.states[i] == rand) {
+            this.states.splice(i, 1);
+            this.updateStates(this.states);
           }
         }
       }, 600000);
@@ -193,16 +194,15 @@ module.exports = {
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${this.clientID}&response_type=code&scope=${this.scopes}${this.mobileStr}${this.permanentStr}`;
     };
 
-    let _this = this;
-    this.authenticate = function(data, redirect) {
+    this.authenticate = (data, redirect) => {
       let urlOptions = data._parsedUrl;
       let originalUrl = data.originalUrl;
 
-      if (url.parse(_this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
+      if (url.parse(this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
         let parsedQuery = querystring.parse(urlOptions.query);
 
         let originated;
-        _this.getStates().forEach(function (state) {
+        this.getStates().forEach((state) => {
           if (state == parsedQuery.state) {
             originated = true;
           }
@@ -212,14 +212,14 @@ module.exports = {
         if (!originated) {
           let err = new Error(`Authentication did not originate on this server`);
 
-          if (_this.debug)
+          if (this.debug)
             return this.error(err);
 
           console.error(err);
           return this.fail(err);
         }
 
-        let auth = _this.getAuth();
+        let auth = this.getAuth();
 
         let headers = {
           'Authorization': auth,
@@ -233,7 +233,7 @@ module.exports = {
         };
         request.post(options, (err, response, body) => {
           if (err) {
-            if (_this.debug)
+            if (this.debug)
               return this.error(err);
 
             console.error(err);
@@ -242,7 +242,7 @@ module.exports = {
 
           if (!isValidJson(body)) {
             let err = new Error(`Invalid JSON response`);
-            if (_this.debug)
+            if (this.debug)
               return this.error(err);
 
             console.error(err);
@@ -250,10 +250,11 @@ module.exports = {
           }
 
           body = JSON.parse(body);
+
           if (body.error) {
             let err = new Error(`Failed to serialize user into session: ${body.error}`);
 
-            if (_this.debug)
+            if (this.debug)
               return this.error(err);
 
             console.error(err);
@@ -269,7 +270,7 @@ module.exports = {
           };
           request.get(options2, (err, response, body3) => {
             if (err) {
-              if (_this.debug)
+              if (this.debug)
                 return this.error(err);
 
               console.error(err);
@@ -279,7 +280,7 @@ module.exports = {
             if (!isValidJson(body3)) {
               let err = new Error(`Invalid JSON response`);
 
-              if (_this.debug)
+              if (this.debug)
                 return this.error(err);
 
               console.error(err);
@@ -291,7 +292,7 @@ module.exports = {
             if (realBody.error) {
               let err = new Error(`Failed to serialize user into session: ${realBody.error}`);
 
-              if (_this.debug)
+              if (this.debug)
                 return this.error(err);
 
               console.error(err);
@@ -300,29 +301,28 @@ module.exports = {
 
             let userObj = realBody.response;
 
-            // OPSkins don't give these anymore
-            //            userObj.balance = realBody.balance;
-            //            userObj.credits = realBody.credits;
-            //            userObj.cryptoBalances = realBody.cryptoBalances;
+
+            console.log('realBody: ', realBody);
 
             userObj.access = body;
             userObj.access.code = parsedQuery.code;
 
-            let datErr = _this.debug ? this.error : this.fail;
+            let datErr = this.debug ? this.error : this.fail;
             let datSuccess = this.success;
+
             if(this.passReqToCallback) {
-              _this.callback(data, userObj, function(err, user) {
+              this.callback(data, userObj, (err, user) => {
                 if (err) {
-                  if (!_this.debug)
+                  if (!this.debug)
                     console.error(err);
                   return datErr(err);
                 }
                 datSuccess(user);
               });
             } else {
-              _this.callback(userObj, function(err, user) {
+              this.callback(userObj, (err, user) => {
                 if (err) {
-                  if (!_this.debug)
+                  if (!this.debug)
                     console.error(err);
                   return datErr(err);
                 }
@@ -332,10 +332,10 @@ module.exports = {
           });
         });
       } else {
-        data.res.redirect(_this.goLogin());
+        data.res.redirect(this.goLogin());
       }
     };
-    this.refreshAccessToken = function(refreshToken, cb) {
+    this.refreshAccessToken = (refreshToken, cb) => {
       let auth = this.getAuth();
 
       let headers = {
