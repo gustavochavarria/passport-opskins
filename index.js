@@ -175,8 +175,11 @@ module.exports = {
       const rand = crypto.randomBytes(4).toString('hex');
       this.states.push(rand);
 
+      console.log('go login....');
+
       let _dat = this;
       setTimeout(function () {
+        console.log('relogin...');
         for (let i = 0; i < _dat.states.length; i++) {
           if (_dat.states[i] == rand) {
             _dat.states.splice(i, 1);
@@ -184,6 +187,8 @@ module.exports = {
           }
         }
       }, 600000);
+
+      console.log(`https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${this.clientID}&response_type=code&scope=${this.scopes}${this.mobileStr}${this.permanentStr}`);
 
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${this.clientID}&response_type=code&scope=${this.scopes}${this.mobileStr}${this.permanentStr}`;
     };
