@@ -73,7 +73,7 @@ module.exports = {
     };
 
     this.deleteClient = (clientid) => {
-      let options = {
+      const options = {
         url: 'https://api.opskins.com/IOAuth/DeleteClient/v1/',
         headers: {
           'authorization': `Basic ${this.apiKey}`,
@@ -81,6 +81,7 @@ module.exports = {
         },
         body: `client_id=${clientid}`
       };
+
       request.post(options, (err, response, body) => {
         if (err)
           console.error(err);
@@ -103,18 +104,22 @@ module.exports = {
       request.get(options, (err, response, body) => {
         if (err)
           return cb(err);
+
         if (!isValidJson(body))
           return cb(new Error(`Invalid JSON response`));
+
         let realBody = JSON.parse(body);
+
         if (realBody.status !== 1)
           return cb(new Error(`Error retrieving clients: ${realBody.message}`));
+
         cb(null, realBody.response.clients);
       });
     };
 
     this.getOrMakeClient = () => {
-      let localSavedClients = this.getLocalSavedClientList();
-      let datApiKey = this.apiKey;
+      const localSavedClients = this.getLocalSavedClientList();
+      const datApiKey = this.apiKey;
 
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
@@ -185,7 +190,7 @@ module.exports = {
         for (let i = 0; i < this.states.length; i++) {
           if (this.states[i] == rand) {
             this.states.splice(i, 1);
-            this.updateStates(_dat.states);
+            this.updateStates(this.states);
           }
         }
       }, 600000);
