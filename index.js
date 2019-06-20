@@ -35,17 +35,22 @@ module.exports = {
     this.passReqToCallback = obj.passReqToCallback || false;
     this.canKeepSecret = obj.canKeepSecret || 1;
 
-    this.setIdAndSecret = function(id, secret) {
-      this.clientID = id;
-      this.clientSecret = secret;
+    this.setIdAndSecret = (id, secret) => {
+      this.clientID = String(id).trim();
+      this.clientSecret = String(secret).trim();
+
+      console.log('clientID: ', this.clientID);
     };
 
-    this.getLocalSavedClientList = function() {
+    this.getLocalSavedClientList = () => {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         return [];
+
       let data = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
+
       if (!isValidJson(data))
         return [];
+
       return JSON.parse(data).clients;
     };
 
@@ -67,7 +72,7 @@ module.exports = {
       fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify(jsonObj));
     };
 
-    this.deleteClient = function(clientid) {
+    this.deleteClient = (clientid) => {
       let options = {
         url: 'https://api.opskins.com/IOAuth/DeleteClient/v1/',
         headers: {
@@ -82,16 +87,15 @@ module.exports = {
       });
     };
 
-    this.getApiKey = function() {
+    this.getApiKey = () => {
       return this.apiKey;
     };
 
-    let _self = this;
-    this.getClientList = function(cb) {
-      let options = {
+    this.getClientList = (cb) => {
+      const options = {
         url: 'https://api.opskins.com/IOAuth/GetOwnedClientList/v1/',
         headers: {
-          'authorization': `Basic ${_self.getApiKey()}`,
+          'authorization': `Basic ${this.getApiKey()}`,
           'Content-Type': 'application/json; charset=utf-8'
         }
       };
@@ -108,7 +112,7 @@ module.exports = {
       });
     };
 
-    this.getOrMakeClient = function() {
+    this.getOrMakeClient = () => {
       let localSavedClients = this.getLocalSavedClientList();
       let datApiKey = this.apiKey;
 
@@ -128,7 +132,7 @@ module.exports = {
           return this.setIdAndSecret(existingClient.client_id, existingClient.secret);
         }
 
-        let options = {
+        const options = {
           url: 'https://api.opskins.com/IOAuth/CreateClient/v1/',
           headers: {
             'authorization': `Basic ${datApiKey}`,
@@ -152,31 +156,36 @@ module.exports = {
         });
       });
     };
+
     this.getOrMakeClient();
 
-    this.updateStates = function(states) {
+    this.updateStates = (states) => {
       this.states = states;
     };
-    this.getStates = function() {
+
+    this.getStates = () => {
       return this.states;
     };
-    this.getReturnUrl = function() {
+
+    this.getReturnUrl = ()  => {
       return this.returnURL;
     };
-    this.getAuth = function() {
+
+    this.getAuth = () => {
       return 'Basic ' + Buffer.from(this.clientID + ':' + this.clientSecret).toString('base64');
     }
 
-    this.goLogin = function() {
+    this.goLogin = () => {
       const rand = crypto.randomBytes(4).toString('hex');
       this.states.push(rand);
 
-      let _dat = this;
-      setTimeout(function () {
-        for (let i = 0; i < _dat.states.length; i++) {
-          if (_dat.states[i] == rand) {
-            _dat.states.splice(i, 1);
-            _dat.updateStates(_dat.states);
+      setTimeout(() => {
+        console.log('exec setTimeout');
+
+        for (let i = 0; i < this.states.length; i++) {
+          if (this.states[i] == rand) {
+            this.states.splice(i, 1);
+            this.updateStates(_dat.states);
           }
         }
       }, 600000);
