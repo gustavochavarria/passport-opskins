@@ -16,7 +16,7 @@ const isValidJson = (json) => {
 }
 
 module.exports = {
-  Strategy: function(obj, callback) {
+  Strategy: (obj, callback) => {
     if (!obj.name || !obj.returnURL || !obj.apiKey)
       throw new Error('Missing name, returnURL or apiKey parameter. These are required.');
 
@@ -308,7 +308,8 @@ module.exports = {
             userObj.access.code = parsedQuery.code;
 
             let datErr = this.debug ? this.error : this.fail;
-            let datSuccess = this.success;
+            // let datSuccess = this.success;
+            let datSuccess = (u) => console.log(u);
 
             if(this.passReqToCallback) {
               this.callback(data, userObj, (err, user) => {
