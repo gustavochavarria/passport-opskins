@@ -36,8 +36,8 @@ module.exports = {
     this.canKeepSecret = obj.canKeepSecret || 1;
 
     this.setIdAndSecret = function(id, secret) {
-      this.clientID = id;
-      this.clientSecret = secret;
+      this.clientID = String(id).trim();
+      this.clientSecret = String(secret).trim();
     };
 
     this.getLocalSavedClientList = function() {
