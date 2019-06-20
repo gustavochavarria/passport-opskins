@@ -54,7 +54,7 @@ module.exports = {
       return JSON.parse(data).clients;
     };
 
-    this.pushToLocalSavedClientList = function(client) {
+    this.pushToLocalSavedClientList = (client) => {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         fs.writeFileSync(path.join(__dirname, 'clients.json'), JSON.stringify({
           clients: []
@@ -224,16 +224,15 @@ module.exports = {
           return this.fail(err);
         }
 
-        let auth = _this.getAuth();
+        const auth = _this.getAuth();
 
-        let headers = {
-          'Authorization': auth,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        };
-        let options = {
+        const options = {
           url: 'https://oauth.opskins.com/v1/access_token',
           method: 'POST',
-          headers: headers,
+          headers: {
+            'Authorization': auth,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
           body: `grant_type=authorization_code&code=${parsedQuery.code}`
         };
         request.post(options, (err, response, body) => {
@@ -265,12 +264,11 @@ module.exports = {
             return this.fail(err);
           }
 
-          let headers2 = {
-            'Authorization': `Bearer ${body.access_token}`
-          };
-          let options2 = {
+          const options2 = {
             url: 'https://api.opskins.com/IUser/GetProfile/v1/',
-            headers: headers2
+            headers: {
+              'Authorization': `Bearer ${body.access_token}`
+            }
           };
           request.get(options2, (err, response, body3) => {
             if (err) {
@@ -315,6 +313,7 @@ module.exports = {
 
             let datErr = _this.debug ? this.error : this.fail;
             let datSuccess = this.success;
+
             if(this.passReqToCallback) {
               _this.callback(data, userObj, function(err, user) {
                 if (err) {
@@ -343,14 +342,13 @@ module.exports = {
     this.refreshAccessToken = function(refreshToken, cb) {
       let auth = this.getAuth();
 
-      let headers = {
-        'Authorization': auth,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      };
-      let options = {
+      const options = {
         url: 'https://oauth.opskins.com/v1/access_token',
         method: 'POST',
-        headers: headers,
+        headers: {
+          'Authorization': auth,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
         body: `grant_type=refresh_token&refresh_token=${refreshToken}`
       };
       request.post(options, (err, response, body) => {
