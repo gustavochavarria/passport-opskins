@@ -5,7 +5,7 @@ const request = require('request'),
       fs = require('fs'),
       path = require('path');
 
-function isValidJson(json) {
+const isValidJson = (json) =>  {
   try {
     JSON.parse(json);
   } catch(err) {
@@ -46,7 +46,7 @@ module.exports = {
       if (!fs.existsSync(path.join(__dirname, 'clients.json')))
         return [];
 
-      let data = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
+      const data = fs.readFileSync(path.join(__dirname, 'clients.json'), 'utf8');
 
       if (!isValidJson(data))
         return [];
@@ -185,6 +185,7 @@ module.exports = {
       this.states.push(rand);
 
       setTimeout(() => {
+        console.log('----------------------');
         console.log('exec setTimeout');
 
         for (let i = 0; i < this.states.length; i++) {
@@ -198,15 +199,14 @@ module.exports = {
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${this.clientID}&response_type=code&scope=${this.scopes}${this.mobileStr}${this.permanentStr}`;
     };
 
-    let _this = this;
+    const _this = this;
     this.authenticate = function(data, redirect) {
-      let urlOptions = data._parsedUrl;
-      let originalUrl = data.originalUrl;
+      const { originalUrl, _parsedUrl} = data;
 
       if (url.parse(_this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
-        let parsedQuery = querystring.parse(urlOptions.query);
-
+        const parsedQuery = querystring.parse(_parsedUrl.query);
         let originated;
+
         _this.getStates().forEach(function (state) {
           if (state == parsedQuery.state) {
             originated = true;
@@ -215,7 +215,7 @@ module.exports = {
 
 
         if (!originated) {
-          let err = new Error(`Authentication did not originate on this server`);
+          const err = new Error(`Authentication did not originate on this server`);
 
           if (_this.debug)
             return this.error(err);
@@ -224,17 +224,16 @@ module.exports = {
           return this.fail(err);
         }
 
-        const auth = _this.getAuth();
-
         const options = {
           url: 'https://oauth.opskins.com/v1/access_token',
           method: 'POST',
           headers: {
-            'Authorization': auth,
+            'Authorization': `${_this.getAuth()}`,
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: `grant_type=authorization_code&code=${parsedQuery.code}`
         };
+
         request.post(options, (err, response, body) => {
           if (err) {
             if (_this.debug)
@@ -245,7 +244,8 @@ module.exports = {
           }
 
           if (!isValidJson(body)) {
-            let err = new Error(`Invalid JSON response`);
+            const err = new Error(`Invalid JSON response`);
+
             if (_this.debug)
               return this.error(err);
 
@@ -303,11 +303,6 @@ module.exports = {
 
             let userObj = realBody.response;
 
-            // OPSkins don't give these anymore
-            //            userObj.balance = realBody.balance;
-            //            userObj.credits = realBody.credits;
-            //            userObj.cryptoBalances = realBody.cryptoBalances;
-
             userObj.access = body;
             userObj.access.code = parsedQuery.code;
 
@@ -339,14 +334,12 @@ module.exports = {
         data.res.redirect(_this.goLogin());
       }
     };
-    this.refreshAccessToken = function(refreshToken, cb) {
-      let auth = this.getAuth();
-
+    this.refreshAccessToken = (refreshToken, cb) => {
       const options = {
         url: 'https://oauth.opskins.com/v1/access_token',
         method: 'POST',
         headers: {
-          'Authorization': auth,
+          'Authorization': `${this.getAuth()}`,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: `grant_type=refresh_token&refresh_token=${refreshToken}`
