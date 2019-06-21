@@ -201,12 +201,21 @@ module.exports = {
         }
       }, 600000);
 
+      console.log(' =================== LOGIN ===================')
+      console.log('clientID: ', this.clientID)
+      console.log('scopes: ', this.scopes)
+      console.log('permanentStr: ', this.permanentStr)
+
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${this.clientID}&response_type=code&scope=${this.scopes}${this.mobileStr}${this.permanentStr}`;
     };
 
     const _this = this;
     this.authenticate = function(data, redirect) {
       const { originalUrl, _parsedUrl} = data;
+
+      console.log('=================== AUTHENTICATING ===================');
+      console.log('originalUrl: ', originalUrl)
+      console.log('_parsedUrl: ', _parsedUrl);
 
       if (url.parse(_this.getReturnUrl()).pathname == url.parse(originalUrl).pathname) {
         const parsedQuery = querystring.parse(_parsedUrl.query);
@@ -238,6 +247,8 @@ module.exports = {
           },
           body: `grant_type=authorization_code&code=${parsedQuery.code}`
         };
+
+        console.log('options', options);
 
         request.post(options, (err, response, body) => {
           if (err) {
