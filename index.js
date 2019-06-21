@@ -42,6 +42,7 @@ module.exports = {
       this.clientSecret = String(secret).trim();
 
       console.log('clientID: ', this.clientID);
+      console.log('clientSecret: ', this.clientSecret);
     };
 
     this.getLocalSavedClientList = () => {
@@ -133,6 +134,11 @@ module.exports = {
       const localSavedClients = this.getLocalSavedClientList();
       const datApiKey = this.apiKey;
 
+      console.log('=========== getOrMakeClient ===============');
+
+      console.log('localSavedClients:  ', localSavedClients);
+      console.log('datApiKey: ', datApiKey);
+
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
 
@@ -143,20 +149,25 @@ module.exports = {
         clients.forEach(function(client) {
           localSavedClients.forEach(function(localClient) {
             if (
-              localClient.client_id == client.client_id &&
-              localClient.name == client.name &&
-              localClient.redirect_uri == client.redirect_uri &&
-              _dat.returnURL == client.redirect_uri
+              localClient.client_id === client.client_id &&
+              localClient.name === client.name &&
+              localClient.redirect_uri === client.redirect_uri &&
+              _dat.returnURL === client.redirect_uri
             )
               existingClient = localClient;
           });
         });
-        if (existingClient) {
-          return this.setIdAndSecret(
-            existingClient.client_id,
-            existingClient.secret
-          );
-        }
+
+        console.log(' ===== EXISTING CLIENT =====');
+        console.log('existingClient: ', existingClient);
+
+        //CACHE DISABLED
+        // if (existingClient) {
+        //   return this.setIdAndSecret(
+        //     existingClient.client_id,
+        //     existingClient.secret
+        //   );
+        // }
 
         const options = {
           url: 'https://api.opskins.com/IOAuth/CreateClient/v1/',
@@ -164,10 +175,13 @@ module.exports = {
             authorization: `Basic ${datApiKey}`,
             'Content-Type': 'application/json; charset=utf-8',
           },
-          body: `{"name": "${this.siteName}", "redirect_uri": "${
+          body: `{"name": "${this.siteName}","redirect_uri": "${
             this.returnURL
-          }", "can_keep_secret" : ${this.canKeepSecret}}`,
+          }","can_keep_secret" : ${this.canKeepSecret}}`,
         };
+
+        console.log('no user exist');
+        console.log('options: ', options);
         request.post(options, (err, response, body) => {
           if (err) return console.error(err);
 
