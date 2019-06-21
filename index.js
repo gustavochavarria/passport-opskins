@@ -247,6 +247,8 @@ module.exports = {
       }, 600000);
 
       console.log(' =================== LOGIN ===================');
+      console.log('rand: ', rand);
+      console.log('state: ', this.state);
       console.log('clientID: ', this.clientID);
       console.log('scopes: ', this.scopes);
       console.log('permanentStr: ', this.permanentStr);
