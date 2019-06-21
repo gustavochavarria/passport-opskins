@@ -108,7 +108,7 @@ module.exports = {
         if (!isValidJson(body))
           return cb(new Error(`Invalid JSON response`));
 
-        let realBody = JSON.parse(body);
+        const realBody = JSON.parse(body);
 
         if (realBody.status !== 1)
           return cb(new Error(`Error retrieving clients: ${realBody.message}`));
@@ -122,8 +122,10 @@ module.exports = {
       const datApiKey = this.apiKey;
 
       this.getClientList((err, clients) => {
-        if (err) return console.error(err);
-        let _dat = this;
+        if (err)
+          return console.error(err);
+
+        const _dat = this;
 
         let existingClient = null;
 
@@ -143,14 +145,17 @@ module.exports = {
             'authorization': `Basic ${datApiKey}`,
             'Content-Type': 'application/json; charset=utf-8'
           },
-          body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}", "can_keep_secret" : "${this.canKeepSecret}"}`
+          body: `{"name": "${this.siteName}", "redirect_uri": "${this.returnURL}", "can_keep_secret" : ${this.canKeepSecret}}`
         };
         request.post(options, (err, response, body) => {
           if (err)
             return console.error(err);
+
           if (!isValidJson(body))
             return console.error(new Error(`Invalid JSON response`));
+
           body = JSON.parse(body);
+
           if (!body.response || !body.response.client || !body.response.client.client_id || !body.response.secret)
             throw new Error(body.message);
 
@@ -255,7 +260,7 @@ module.exports = {
 
           body = JSON.parse(body);
           if (body.error) {
-            let err = new Error(`Failed to serialize user into session: ${body.error}`);
+            const err = new Error(`Failed to serialize user into session: ${body.error}`);
 
             if (_this.debug)
               return this.error(err);
@@ -280,7 +285,7 @@ module.exports = {
             }
 
             if (!isValidJson(body3)) {
-              let err = new Error(`Invalid JSON response`);
+              const err = new Error(`Invalid JSON response`);
 
               if (_this.debug)
                 return this.error(err);
@@ -292,7 +297,7 @@ module.exports = {
             let realBody = JSON.parse(body3);
 
             if (realBody.error) {
-              let err = new Error(`Failed to serialize user into session: ${realBody.error}`);
+              const err = new Error(`Failed to serialize user into session: ${realBody.error}`);
 
               if (_this.debug)
                 return this.error(err);
