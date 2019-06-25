@@ -161,13 +161,12 @@ module.exports = {
         console.log(' ===== EXISTING CLIENT =====');
         console.log('existingClient: ', existingClient);
 
-        //CACHE DISABLED
-        // if (existingClient) {
-        //   return this.setIdAndSecret(
-        //     existingClient.client_id,
-        //     existingClient.secret
-        //   );
-        // }
+        if (existingClient) {
+          return this.setIdAndSecret(
+            existingClient.client_id,
+            existingClient.secret
+          );
+        }
 
         const options = {
           url: 'https://api.opskins.com/IOAuth/CreateClient/v1/',
