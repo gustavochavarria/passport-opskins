@@ -161,6 +161,7 @@ module.exports = {
         console.log(' ===== EXISTING CLIENT =====');
         console.log('existingClient: ', existingClient);
 
+        //FROM CACHE
         if (existingClient) {
           return this.setIdAndSecret(
             existingClient.client_id,
@@ -179,8 +180,6 @@ module.exports = {
           }","can_keep_secret" : ${this.canKeepSecret}}`,
         };
 
-        console.log('no user exist');
-        console.log('options: ', options);
         request.post(options, (err, response, body) => {
           if (err) return console.error(err);
 
@@ -234,9 +233,6 @@ module.exports = {
       this.states.push(rand);
 
       setTimeout(() => {
-        console.log('----------------------');
-        console.log('exec setTimeout');
-
         for (let i = 0; i < this.states.length; i++) {
           if (this.states[i] == rand) {
             this.states.splice(i, 1);
@@ -246,11 +242,7 @@ module.exports = {
       }, 600000);
 
       console.log(' =================== LOGIN ===================');
-      console.log('rand: ', rand);
-      console.log('state: ', this.state);
       console.log('clientID: ', this.clientID);
-      console.log('scopes: ', this.scopes);
-      console.log('permanentStr: ', this.permanentStr);
 
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${
         this.clientID
@@ -261,17 +253,14 @@ module.exports = {
 
     const _this = this;
     this.authenticate = function(data, redirect) {
+      console.log('=================== GetOrMakeClient ===================');
+      _this.getOrMakeClient();
+
       const { originalUrl, _parsedUrl } = data;
 
       console.log('=================== AUTHENTICATING ===================');
       console.log('originalUrl: ', originalUrl);
       console.log('_parsedUrl: ', _parsedUrl);
-
-      console.log(
-        'getReturn url pathname: ',
-        url.parse(_this.getReturnUrl()).pathname
-      );
-      console.log('original pathname: ', url.parse(originalUrl).pathname);
 
       if (
         url.parse(_this.getReturnUrl()).pathname !==
@@ -286,9 +275,6 @@ module.exports = {
       console.log(' --- PARSING ---');
 
       const parsedQuery = querystring.parse(_parsedUrl.query);
-
-      console.log('parsedQuery: ', parsedQuery);
-      console.log('parsedQuery - code: ', parsedQuery.code);
 
       let originated;
 
@@ -318,9 +304,6 @@ module.exports = {
         },
         body: `grant_type=authorization_code&code=${parsedQuery.code}`,
       };
-
-      console.log('--- ACCESS TOKEN ----- ');
-      console.log('options: ', options);
 
       request.post(options, (err, response, bodyObj) => {
         if (err) {
