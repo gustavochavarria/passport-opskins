@@ -40,9 +40,6 @@ module.exports = {
     this.setIdAndSecret = (id, secret) => {
       this.clientID = String(id).trim();
       this.clientSecret = String(secret).trim();
-
-      console.log('clientID: ', this.clientID);
-      console.log('clientSecret: ', this.clientSecret);
     };
 
     this.getLocalSavedClientList = () => {
@@ -134,10 +131,7 @@ module.exports = {
       const localSavedClients = this.getLocalSavedClientList();
       const datApiKey = this.apiKey;
 
-      console.log('=========== getOrMakeClient ===============');
-
-      console.log('localSavedClients:  ', localSavedClients);
-      console.log('datApiKey: ', datApiKey);
+      console.log('==== Calling getOrMakeClient function ====');
 
       this.getClientList((err, clients) => {
         if (err) return console.error(err);
@@ -157,9 +151,6 @@ module.exports = {
               existingClient = localClient;
           });
         });
-
-        console.log(' ===== EXISTING CLIENT =====');
-        console.log('existingClient: ', existingClient);
 
         //FROM CACHE
         if (existingClient) {
@@ -241,9 +232,6 @@ module.exports = {
         }
       }, 600000);
 
-      console.log(' =================== LOGIN ===================');
-      console.log('clientID: ', this.clientID);
-
       return `https://oauth.opskins.com/v1/authorize?state=${rand}&client_id=${
         this.clientID
       }&response_type=code&scope=${this.scopes}${this.mobileStr}${
@@ -258,21 +246,14 @@ module.exports = {
 
       const { originalUrl, _parsedUrl } = data;
 
-      console.log('=================== AUTHENTICATING ===================');
-      console.log('originalUrl: ', originalUrl);
-      console.log('_parsedUrl: ', _parsedUrl);
-
       if (
         url.parse(_this.getReturnUrl()).pathname !==
         url.parse(originalUrl).pathname
       ) {
-        console.log(' --- REDIRECT ---');
         data.res.redirect(_this.goLogin());
 
         return;
       }
-
-      console.log(' --- PARSING ---');
 
       const parsedQuery = querystring.parse(_parsedUrl.query);
 
@@ -342,13 +323,7 @@ module.exports = {
           },
         };
 
-        console.log('==== GET PROFILE ====');
-        console.log('access_token: ', `${body.access_token}`);
-
         request.get(options2, (err, response, body3) => {
-          console.log('---- request ----');
-          console.log('body3: ', body3);
-
           if (err) {
             if (_this.debug) return this.error(err);
 
@@ -382,9 +357,6 @@ module.exports = {
 
           userObj.access = body;
           userObj.access.code = parsedQuery.code;
-
-          console.log(' ==== USER OBJ =====');
-          console.log('userObj: ', userObj);
 
           let datErr = _this.debug ? this.error : this.fail;
           let datSuccess = this.success;
